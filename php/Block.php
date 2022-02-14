@@ -65,8 +65,18 @@ class Block {
 	public function render_callback( $attributes, $content, $block ) {
 		$post_types = get_post_types(  [ 'public' => true ] );
 		$class_name = $attributes['className'];
-		ob_start();
 
+		// Load transient
+	  $transient = get_transient( 'site_counts' );
+
+	  // Test transient
+	  if( ! empty( $transient ) ) {
+			// Return transient
+			return $transient;
+
+	  } else {
+
+		ob_start();
 		?>
         <div class="<?php echo $class_name; ?>">
 			<h2>Post Counts</h2>
@@ -120,9 +130,15 @@ class Block {
 			endif;
 		 	?>
 			</ul>
+
 		</div>
 		<?php
+		// Set transient from output buffer and refresh every 15 minutes.
+		$output = ob_get_contents();
+		ob_end_clean();
+		set_transient( 'site_counts', $output, 900 );
+		return $output;
+			}
+			}
 
-		return ob_get_clean();
-	}
 }
